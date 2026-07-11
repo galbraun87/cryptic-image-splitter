@@ -169,7 +169,7 @@
     const M = parseInt(document.getElementById('colsCount').value) || 4;
     const L = parseInt(document.getElementById('layersCount').value) || 4;
     
-    const scale = Math.min(1, 800 / uploadedImage.width);
+    const scale = 1; //Math.min(1, 800 / uploadedImage.width);
     const w = Math.round(uploadedImage.width * scale);
     const h = Math.round(uploadedImage.height * scale);
     const cellW = w / M; const cellH = h / N;
