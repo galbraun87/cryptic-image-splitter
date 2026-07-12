@@ -44,29 +44,33 @@ function remixCurrent() { runTrigger(); }
 
 function generateTextAndProcess(text) {
   const canvas = document.createElement('canvas');
-  // שינוי המימדים למלבן צפוף והדוק
-  canvas.width = 450; canvas.height = 300;
+  // רוחב 650 נותן מקום מושלם לכל 4 הספרות
+  canvas.width = 650; canvas.height = 300;
   const ctx = canvas.getContext('2d');
   
   ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, 450, 300);
+  ctx.fillRect(0, 0, 650, 300);
   
-  // ריווח קצר ומאוזן כדי שלא יברח מהצדדים
   const spacedText = text.split('').join(' ');
   ctx.fillStyle = 'black';
   
-  // פונט ענק שחונק את גבולות הקנבס
-  ctx.font = '260px EscapeFont, sans-serif';
+  // פונט 200px - הגודל המושלם למילוי מקסימלי
+  ctx.font = '200px EscapeFont, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   
-  // מיקום הציור במרכז החדש (225 הוא חצי מ-450, 150 חצי מ-300)
-  ctx.fillText(spacedText, 225, 150);
+  // ציור במרכז המדויק (325 הוא חצי מ-650)
+  ctx.fillText(spacedText, 325, 150);
   
   const img = new Image();
   img.onload = function() { processImage(img); };
   img.src = canvas.toDataURL();
 }
+
+// החזרת מנגנון הטעינה האוטומטית המקורי והטוב
+document.fonts.ready.then(function() {
+  runTrigger();
+});
 
 
 // מנגנון טעינה קשיח ומאובטח לפונטים מקומיים
