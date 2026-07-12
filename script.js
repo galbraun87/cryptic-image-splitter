@@ -1,9 +1,12 @@
 let globalImg = null;
+let isFirstLoad = true;
 
 document.getElementById('imageLoader')
   .addEventListener('change', function(e) {
-    if (!e.target.files) return;
+    if (!e.target.files[0]) return;
     document.getElementById('codeText').value = '';
+    globalImg = null; // איפוס תמונת טקסט קודמת
+    
     const rdr = new FileReader();
     rdr.onload = function(event) {
       const img = new Image();
@@ -13,7 +16,7 @@ document.getElementById('imageLoader')
       }
       img.src = event.target.result;
     }
-    rdr.readAsDataURL(e.target.files);
+    rdr.readAsDataURL(e.target.files[0]);
   });
 
 const inputs = ['rowsCount', 'colsCount', 'layersCount'];
@@ -44,40 +47,28 @@ function remixCurrent() { runTrigger(); }
 
 function generateTextAndProcess(text) {
   const canvas = document.createElement('canvas');
-  // רוחב 650 נותן מקום מושלם לכל 4 הספרות
-  canvas.width = 650; canvas.height = 300;
+  // מלבן מהודק וצר יותר למניעת שוליים לבנים
+  canvas.width = 650; canvas.height = 220;
   const ctx = canvas.getContext('2d');
   
   ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, 650, 300);
+  ctx.fillRect(0, 0, 650, 220);
   
   const spacedText = text.split('').join(' ');
   ctx.fillStyle = 'black';
   
-  // פונט 200px - הגודל המושלם למילוי מקסימלי
+  // פונט ענק ומותאם למימדי הרצועה החדשה
   ctx.font = '200px EscapeFont, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   
-  // ציור במרכז המדויק (325 הוא חצי מ-650)
-  ctx.fillText(spacedText, 325, 150);
+  // תיקון גובה ל-125 בשביל מרכוס מושלם של הפונט הקישוטי
+  ctx.fillText(spacedText, 325, 125);
   
   const img = new Image();
   img.onload = function() { processImage(img); };
   img.src = canvas.toDataURL();
 }
-
-// החזרת מנגנון הטעינה האוטומטית המקורי והטוב
-document.fonts.ready.then(function() {
-  runTrigger();
-});
-
-
-// מנגנון טעינה קשיח ומאובטח לפונטים מקומיים
-WebFont.load({
-  custom: { families: ['EscapeFont'] },
-  active: function() { runTrigger(); }
-});
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -201,6 +192,10 @@ function processImage(uploadedImage) {
   mImg.src = mCvs.toDataURL();
 }
 
+// הרצה ראשונית מבוקרת פעם אחת בלבד
 document.fonts.ready.then(function() {
-  runTrigger();
+  if (isFirstLoad) {
+    isFirstLoad = false;
+    runTrigger();
+  }
 });
