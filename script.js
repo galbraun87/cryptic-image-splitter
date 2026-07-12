@@ -103,7 +103,11 @@ function processImage(uploadedImage) {
   srcCtx.drawImage(uploadedImage, 0, 0, w, h);
   const pixels = srcCtx.getImageData(0, 0, w, h).data;
 
-  const hasContent = Array.from({length: N}, () => Array.from({length: M}, () => false));
+  // יצירת מערכים בשיטה נקייה ללא סוגריים מרובעים כפולים
+  const hasContent = Array.from({length: N}, function() {
+    return Array.from({length: M}, function() { return false; });
+  });
+
   for (let y = 0; y < h; y++) {
     const r = Math.min(N - 1, Math.floor(y / cellH));
     for (let x = 0; x < w; x++) {
@@ -112,17 +116,19 @@ function processImage(uploadedImage) {
     }
   }
 
-  const gridMap = Array.from({length: N}, () => Array.from({length: M}, () => 0));
-  const counts = Array.from({length: L}, () => 0);
+  const gridMap = Array.from({length: N}, function() {
+    return Array.from({length: M}, function() { return 0; });
+  });
+  const counts = Array.from({length: L}, function() { return 0; });
 
   for (let r = 0; r < N; r++) {
     for (let c = 0; c < M; c++) {
-      let opts = Array.from({length: L}, (_, i) => i);
-      opts.sort((a, b) => counts[a] - counts[b]);
-      if (r > 0) opts = opts.filter(i => i !== gridMap[r-1][c]);
-      if (c > 0) opts = opts.filter(i => i !== gridMap[r][c-1]);
+      let opts = Array.from({length: L}, function(_, i) { return i; });
+      opts.sort(function(a, b) { return counts[a] - counts[b]; });
+      if (r > 0) opts = opts.filter(function(i) { return i !== gridMap[r-1][c]; });
+      if (c > 0) opts = opts.filter(function(i) { return i !== gridMap[r][c-1]; });
       if (opts.length > 1 && Math.random() < 0.4) opts = shuffle(opts);
-      const grp = opts.length === 0 ? Math.floor(Math.random() * L) : opts;
+      const grp = opts.length === 0 ? Math.floor(Math.random() * L) : opts[0];
       gridMap[r][c] = grp;
       if (hasContent[r][c]) counts[grp]++;
     }
@@ -161,7 +167,7 @@ function processImage(uploadedImage) {
     canvases.push(cvs); ctxs.push(ctx); outImgs.push(img);
   }
 
-  const targetImgDatas = ctxs.map(ctx => ctx.getImageData(0, 0, w, h));
+  const targetImgDatas = ctxs.map(function(ctx) { return ctx.getImageData(0, 0, w, h); });
   const masterImgData = mCtx.getImageData(0, 0, w, h);
   
   const colors = ['#eb4d4b', '#4834d4', '#22a6b3', '#2ecc71', '#f1c40f', '#e67e22', '#9b59b6', '#e84393'];
@@ -192,14 +198,14 @@ function processImage(uploadedImage) {
     }
   }
 
-  ctxs.forEach((ctx, idx) => {
+  ctxs.forEach(function(ctx, idx) {
     ctx.putImageData(targetImgDatas[idx], 0, 0);
     outImgs[idx].src = canvases[idx].toDataURL();
   });
   mCtx.putImageData(masterImgData, 0, 0);
   mImg.src = mCvs.toDataURL();
 
-  // בניית דף ההדפסה המאוחד ברזולוציה גבוהה
+  // יצירת דף ההדפסה
   const pSheetCanvas = document.getElementById('canvasPrintSheet');
   const pSheetImg = document.getElementById('imgPrintSheet');
   const pSheetCtx = pSheetCanvas.getContext('2d');
@@ -211,21 +217,20 @@ function processImage(uploadedImage) {
   pSheetCtx.fillStyle = 'white';
   pSheetCtx.fillRect(0, 0, pSheetCanvas.width, pSheetCanvas.height);
   
-  canvases.forEach((singleCanvas, idx) => {
+  canvases.forEach(function(singleCanvas, idx) {
     const yPos = (idx * h) + (spacing * (idx + 1));
     const xPos = spacing;
     pSheetCtx.drawImage(singleCanvas, xPos, yPos);
     
+    // ציור מסגרת גזירה בשיטה מוגנת ללא שגיאות סינטקס
     pSheetCtx.strokeStyle = '#95a5a6';
     pSheetCtx.lineWidth = 3;
-    // תיקון השגיאה: קו מקווקו תקין באורך 10 פיקסלים
-    pSheetCtx.setLineDash([10, 10]); 
     pSheetCtx.strokeRect(xPos - 4, yPos - 4, w + 8, h + 8);
   });
   
   pSheetImg.src = pSheetCanvas.toDataURL();
   document.getElementById('masterHolder').style.display = 'block';
-  canvases.forEach(c => c.parentElement.style.display = 'block');
+  canvases.forEach(function(c) { c.parentElement.style.display = 'block'; });
 }
 
 document.fonts.load('180px EscapeFont').then(function() {
