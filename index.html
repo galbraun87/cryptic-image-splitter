@@ -2,32 +2,40 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
-  <title>Splitter</title>
+  <meta name="viewport" 
+        content="width=device-width, 
+                 initial-scale=1.0">
+  <title>Splitter V2</title>
   <style>
+    @font-face {
+      font-family: 'EscapeFont';
+      src: url('DobkinScript.ttf') 
+           format('truetype');
+    }
     body {
       font-family: sans-serif;
-      margin: 20px;
+      margin: 10px;
       background: #eeeff3;
       text-align: center;
     }
     .container {
-      max-width: 1200px;
+      max-width: 100%;
       margin: 0 auto;
       background: white;
-      padding: 25px;
+      padding: 15px;
       border-radius: 12px;
+      box-sizing: border-box;
     }
     .controls {
       background: #f8f9fa;
-      padding: 20px;
+      padding: 15px;
       border-radius: 8px;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
+      text-align: left;
     }
     .control-group {
-      display: inline-block;
-      margin: 10px 15px;
-      text-align: left;
-      vertical-align: top;
+      display: block;
+      margin: 12px 0;
     }
     label {
       display: block;
@@ -35,10 +43,25 @@
       margin-bottom: 5px;
     }
     input, button {
-      padding: 10px;
+      padding: 12px;
       font-size: 16px;
       border-radius: 6px;
       border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    input[type="number"] {
+      width: 80px;
+      display: inline-block;
+    }
+    .inline-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .inline-item {
+      flex: 1;
+      min-width: 70px;
     }
     button.primary {
       background: #28a745;
@@ -46,12 +69,19 @@
       border: none;
       cursor: pointer;
       font-weight: bold;
+      margin-top: 10px;
     }
     .output-grid {
       display: grid;
-      grid-template-columns: 
-        repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: 1fr;
       gap: 20px;
+    }
+    @media(min-width: 600px) {
+      .output-grid {
+        grid-template-columns: 
+          repeat(auto-fit, 
+                 minmax(240px, 1fr));
+      }
     }
     .canvas-container {
       background: #fafafa;
@@ -66,7 +96,7 @@
       max-width: 100%;
       height: auto;
       border: 1px solid #eee;
-      background: #ddd;
+      background: white;
     }
     .master-container {
       grid-column: 1 / -1;
@@ -74,67 +104,75 @@
       border: 2px solid #ffe082;
     }
     .hint {
-      font-size: 12px;
+      font-size: 13px;
       color: #777;
       margin-top: 5px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Image Splitter</h1>
+  <h1>Image Splitter V2</h1>
   
   <div class="controls">
     <div class="control-group">
-      <label>1. Source Image:</label>
+      <label>1. Code Text (Optional):</label>
+      <input type="text" id="codeText" 
+             placeholder="e.g. 1234" 
+             maxlength="10">
+    </div>
+    <div class="control-group">
+      <label>OR Choose Source Image:</label>
       <input type="file" id="imageLoader" 
              accept="image/*">
     </div>
-    <div class="control-group">
-      <label>2. Columns (M):</label>
-      <input type="number" id="colsCount" 
-             value="4" min="1" max="50" 
-             style="width: 60px;">
+    
+    <div class="inline-group">
+      <div class="inline-item">
+        <label>Cols (M):</label>
+        <input type="number" id="colsCount" 
+               value="4" min="1" max="50">
+      </div>
+      <div class="inline-item">
+        <label>Rows (N):</label>
+        <input type="number" id="rowsCount" 
+               value="8" min="1" max="300">
+      </div>
+      <div class="inline-item">
+        <label>Layers:</label>
+        <input type="number" 
+               id="layersCount" 
+               value="4" min="2" max="10">
+      </div>
     </div>
-    <div class="control-group">
-      <label>3. Rows (N):</label>
-      <input type="number" id="rowsCount" 
-             value="8" min="1" max="300" 
-             style="width: 60px;">
-    </div>
-    <div class="control-group">
-      <label>4. Layers:</label>
-      <input type="number" id="layersCount" 
-             value="4" min="2" max="10" 
-             style="width: 60px;">
-    </div>
-    <div class="control-group" 
-         style="padding-top: 24px;">
-      <button id="shuffleBtn" class="primary" 
-              onclick="remixCurrent()" 
-              style="display:none;">
-        🎲 Remix Layers
-      </button>
-    </div>
+
+    <button id="shuffleBtn" 
+            class="primary" 
+            onclick="remixCurrent()">
+      🎲 Remix Layers
+    </button>
   </div>
 
-  <div id="outputGrid" class="output-grid"></div>
+  <div id="outputGrid" 
+       class="output-grid"></div>
 </div>
 
 <script>
   let globalImg = null;
 
   document.getElementById('imageLoader')
-    .addEventListener('change', function(e) {
+    .addEventListener('change', 
+    function(e) {
       if (!e.target.files[0]) return;
+      document.getElementById('codeText')
+        .value = '';
       const rdr = new FileReader();
       rdr.onload = function(event) {
         const img = new Image();
         img.onload = function() { 
           globalImg = img;
-          document.getElementById('shuffleBtn')
-            .style.display = 'inline-block';
           processImage(img); 
         }
         img.src = event.target.result;
@@ -142,21 +180,74 @@
       rdr.readAsDataURL(e.target.files[0]);
     });
 
-  const inputs = ['rowsCount', 'colsCount', 'layersCount'];
+  const inputs = [
+    'rowsCount', 
+    'colsCount', 
+    'layersCount'
+  ];
   inputs.forEach(id => {
     document.getElementById(id)
-      .addEventListener('change', function() {
-        if (globalImg) processImage(globalImg);
+      .addEventListener('change', 
+      function() {
+        runTrigger();
       });
   });
 
+  document.getElementById('codeText')
+    .addEventListener('input', 
+    function() {
+      if (this.value.length > 0) {
+        globalImg = null;
+        document
+          .getElementById('imageLoader')
+          .value = '';
+        runTrigger();
+      }
+    });
+
+  function runTrigger() {
+    const txt = document
+      .getElementById('codeText').value;
+    if (globalImg) {
+      processImage(globalImg);
+    } else if (txt.length > 0) {
+      generateTextAndProcess(txt);
+    }
+  }
+
   function remixCurrent() {
-    if (globalImg) processImage(globalImg);
+    runTrigger();
+  }
+
+  function generateTextAndProcess(text) {
+    const canvas = document
+      .createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 400;
+    const ctx = canvas.getContext('2d');
+    
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, 800, 400);
+    
+    ctx.fillStyle = 'black';
+    ctx.font = '110px EscapeFont, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 400, 200);
+    
+    const img = new Image();
+    img.onload = function() {
+      processImage(img);
+    };
+    img.src = canvas.toDataURL();
   }
 
   function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+    for (let i = array.length - 1; 
+         i > 0; i--) {
+      const j = Math.floor(
+        Math.random() * (i + 1)
+      );
       const temp = array[i]; 
       array[i] = array[j]; 
       array[j] = temp;
@@ -165,97 +256,179 @@
   }
 
   function processImage(uploadedImage) {
-    const N = parseInt(document.getElementById('rowsCount').value) || 8;
-    const M = parseInt(document.getElementById('colsCount').value) || 4;
-    const L = parseInt(document.getElementById('layersCount').value) || 4;
+    const N = parseInt(
+      document.getElementById('rowsCount').value
+    ) || 8;
+    const M = parseInt(
+      document.getElementById('colsCount').value
+    ) || 4;
+    const L = parseInt(
+      document.getElementById('layersCount')
+      .value
+    ) || 4;
     
-    const scale = 1; //Math.min(1, 800 / uploadedImage.width);
-    const w = Math.round(uploadedImage.width * scale);
-    const h = Math.round(uploadedImage.height * scale);
-    const cellW = w / M; const cellH = h / N;
+    const scale = 1;
+    const w = Math.round(
+      uploadedImage.width * scale
+    );
+    const h = Math.round(
+      uploadedImage.height * scale
+    );
+    const cellW = w / M; 
+    const cellH = h / N;
 
-    const srcCanvas = document.createElement('canvas');
-    srcCanvas.width = w; srcCanvas.height = h;
-    const srcCtx = srcCanvas.getContext('2d');
-    srcCtx.drawImage(uploadedImage, 0, 0, w, h);
-    const pixels = srcCtx.getImageData(0, 0, w, h).data;
+    const srcCanvas = document
+      .createElement('canvas');
+    srcCanvas.width = w; 
+    srcCanvas.height = h;
+    const srcCtx = srcCanvas
+      .getContext('2d');
+    srcCtx.drawImage(
+      uploadedImage, 0, 0, w, h
+    );
+    const pixels = srcCtx
+      .getImageData(0, 0, w, h).data;
 
-    const hasContent = Array.from({length: N}, () => 
+    const hasContent = Array.from(
+      {length: N}, () => 
       Array.from({length: M}, () => false)
     );
     for (let y = 0; y < h; y++) {
-      const r = Math.min(N - 1, Math.floor(y / cellH));
+      const r = Math.min(
+        N - 1, Math.floor(y / cellH)
+      );
       for (let x = 0; x < w; x++) {
-        const c = Math.min(M - 1, Math.floor(x / cellW));
-        if (pixels[(y * w + x) * 4] < 128) hasContent[r][c] = true;
+        const c = Math.min(
+          M - 1, Math.floor(x / cellW)
+        );
+        if (pixels[(y * w + x) * 4] < 128) {
+          hasContent[r][c] = true;
+        }
       }
     }
 
-    const gridMap = Array.from({length: N}, () => 
+    const gridMap = Array.from(
+      {length: N}, () => 
       Array.from({length: M}, () => 0)
     );
-    const counts = Array.from({length: L}, () => 0);
+    const counts = Array.from(
+      {length: L}, () => 0
+    );
 
     for (let r = 0; r < N; r++) {
       for (let c = 0; c < M; c++) {
-        let opts = Array.from({length: L}, (_, i) => i);
-        opts.sort((a, b) => counts[a] - counts[b]);
-        if (r > 0) opts = opts.filter(i => i !== gridMap[r-1][c]);
-        if (c > 0) opts = opts.filter(i => i !== gridMap[r][c-1]);
-        if (opts.length > 1 && Math.random() < 0.4) opts = shuffle(opts);
-        const grp = opts.length === 0 ? Math.floor(Math.random() * L) : opts[0];
+        let opts = Array.from(
+          {length: L}, (_, i) => i
+        );
+        opts.sort((a, b) => 
+          counts[a] - counts[b]
+        );
+        if (r > 0) {
+          opts = opts.filter(i => 
+            i !== gridMap[r-1][c]
+          );
+        }
+        if (c > 0) {
+          opts = opts.filter(i => 
+            i !== gridMap[r][c-1]
+          );
+        }
+        if (opts.length > 1 && 
+            Math.random() < 0.4) {
+          opts = shuffle(opts);
+        }
+        const grp = opts.length === 0 ? 
+          Math.floor(Math.random() * L) : 
+          opts[0];
         gridMap[r][c] = grp;
         if (hasContent[r][c]) counts[grp]++;
       }
     }
 
-    const grid = document.getElementById('outputGrid');
+    const grid = document
+      .getElementById('outputGrid');
     grid.innerHTML = '';
 
-    const mHolder = document.createElement('div');
-    mHolder.className = 'canvas-container master-container';
-    mHolder.innerHTML = '<h3>🔍 Unified Solution Map</h3>';
-    const mCvs = document.createElement('canvas');
+    const mHolder = document
+      .createElement('div');
+    mHolder.className = 
+      'canvas-container master-container';
+    mHolder.innerHTML = 
+      '<h3>🔍 Unified Solution Map</h3>';
+    const mCvs = document
+      .createElement('canvas');
     mCvs.width = w; mCvs.height = h;
     const mCtx = mCvs.getContext('2d');
-    mCtx.fillStyle = 'white'; mCtx.fillRect(0, 0, w, h);
-    const mImg = document.createElement('img');
+    mCtx.fillStyle = 'white'; 
+    mCtx.fillRect(0, 0, w, h);
+    const mImg = document
+      .createElement('img');
     mImg.className = 'out-img';
-    mHolder.appendChild(mCvs); mHolder.appendChild(mImg);
+    mHolder.appendChild(mCvs); 
+    mHolder.appendChild(mImg);
     grid.appendChild(mHolder);
 
-    const canvases = []; const ctxs = []; const outImgs = [];
+    const canvases = []; 
+    const ctxs = []; 
+    const outImgs = [];
     for (let i = 0; i < L; i++) {
-      const holder = document.createElement('div');
+      const holder = document
+        .createElement('div');
       holder.className = 'canvas-container';
-      holder.innerHTML = '<h3>Layer ' + (i+1) + '</h3>';
-      const cvs = document.createElement('canvas');
+      holder.innerHTML = 
+        '<h3>Layer ' + (i+1) + '</h3>';
+      const cvs = document
+        .createElement('canvas');
       cvs.width = w; cvs.height = h;
       const ctx = cvs.getContext('2d');
-      ctx.fillStyle = 'white'; ctx.fillRect(0, 0, w, h);
-      const img = document.createElement('img');
+      ctx.fillStyle = 'white'; 
+      ctx.fillRect(0, 0, w, h);
+      const img = document
+        .createElement('img');
       img.className = 'out-img';
-      const hint = document.createElement('div');
-      hint.className = 'hint'; hint.innerText = 'ℹ️ Long press to Save';
-      holder.appendChild(cvs); holder.appendChild(img);
-      holder.appendChild(hint); grid.appendChild(holder);
-      canvases.push(cvs); ctxs.push(ctx); outImgs.push(img);
+      const hint = document
+        .createElement('div');
+      hint.className = 'hint'; 
+      hint.innerText = '☝️ Long press to Save';
+      holder.appendChild(cvs); 
+      holder.appendChild(img);
+      holder.appendChild(hint); 
+      grid.appendChild(holder);
+      canvases.push(cvs); 
+      ctxs.push(ctx); 
+      outImgs.push(img);
     }
 
-    const targetImgDatas = ctxs.map(ctx => ctx.getImageData(0, 0, w, h));
-    const masterImgData = mCtx.getImageData(0, 0, w, h);
+    const targetImgDatas = ctxs.map(ctx => 
+      ctx.getImageData(0, 0, w, h)
+    );
+    const masterImgData = mCtx
+      .getImageData(0, 0, w, h);
     
-    const colors = ['#eb4d4b', '#4834d4', '#22a6b3', '#2ecc71', '#f1c40f', '#e67e22', '#9b59b6', '#e84393'];
-    const rgb = colors.slice(0, L).map(hex => {
-      const c = parseInt(hex.slice(1), 16);
-      return { r: (c >> 16) & 255, g: (c >> 8) & 255, b: c & 255 };
-    });
+    const colors = [
+      '#eb4d4b', '#4834d4', '#22a6b3', 
+      '#2ecc71', '#f1c40f', '#e67e22', 
+      '#9b59b6', '#e84393'
+    ];
+    const rgb = colors.slice(0, L)
+      .map(hex => {
+        const c = parseInt(hex.slice(1), 16);
+        return { 
+          r: (c >> 16) & 255, 
+          g: (c >> 8) & 255, 
+          b: c & 255 
+        };
+      });
 
     for (let y = 0; y < h; y++) {
-      const gRow = Math.min(N - 1, Math.floor(y / cellH));
+      const gRow = Math.min(
+        N - 1, Math.floor(y / cellH)
+      );
       const isBorderY = (y < 4 || y > h - 5);
       for (let x = 0; x < w; x++) {
-        const gCol = Math.min(M - 1, Math.floor(x / cellW));
+        const gCol = Math.min(
+          M - 1, Math.floor(x / cellW)
+        );
         const isBorderX = (x < 4 || x > w - 5);
         const srcIdx = (y * w + x) * 4;
         const isFrame = (isBorderX || isBorderY);
@@ -264,20 +437,36 @@
           const group = gridMap[gRow][gCol];
           const color = rgb[group];
           const tData = targetImgDatas[group].data;
-          tData[srcIdx] = 0; tData[srcIdx+1] = 0; tData[srcIdx+2] = 0; tData[srcIdx+3] = 255;
+          tData[srcIdx] = 0; 
+          tData[srcIdx+1] = 0; 
+          tData[srcIdx+2] = 0; 
+          tData[srcIdx+3] = 255;
           const mPixels = masterImgData.data;
-          mPixels[srcIdx] = color.r; mPixels[srcIdx+1] = color.g; mPixels[srcIdx+2] = color.b; mPixels[srcIdx+3] = 255;
+          mPixels[srcIdx] = color.r; 
+          mPixels[srcIdx+1] = color.g; 
+          mPixels[srcIdx+2] = color.b; 
+          mPixels[srcIdx+3] = 255;
         }
       }
     }
 
     ctxs.forEach((ctx, idx) => {
-      ctx.putImageData(targetImgDatas[idx], 0, 0);
-      outImgs[idx].src = canvases[idx].toDataURL();
+      ctx.putImageData(
+        targetImgDatas[idx], 0, 0
+      );
+      outImgs[idx].src = 
+        canvases[idx].toDataURL();
     });
     mCtx.putImageData(masterImgData, 0, 0);
     mImg.src = mCvs.toDataURL();
   }
+  
+  document.fonts.ready.then(function() {
+    const inputTxt = document
+      .getElementById('codeText');
+    if(inputTxt.value) runTrigger();
+  });
 </script>
 </body>
 </html>
+  
