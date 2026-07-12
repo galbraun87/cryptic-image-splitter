@@ -103,7 +103,6 @@ function processImage(uploadedImage) {
   srcCtx.drawImage(uploadedImage, 0, 0, w, h);
   const pixels = srcCtx.getImageData(0, 0, w, h).data;
 
-  // יצירת מערכים בשיטה נקייה ללא סוגריים מרובעים כפולים
   const hasContent = Array.from({length: N}, function() {
     return Array.from({length: M}, function() { return false; });
   });
@@ -128,7 +127,7 @@ function processImage(uploadedImage) {
       if (r > 0) opts = opts.filter(function(i) { return i !== gridMap[r-1][c]; });
       if (c > 0) opts = opts.filter(function(i) { return i !== gridMap[r][c-1]; });
       if (opts.length > 1 && Math.random() < 0.4) opts = shuffle(opts);
-      const grp = opts.length === 0 ? Math.floor(Math.random() * L) : opts[0];
+      const grp = opts.length === 0 ? Math.floor(Math.random() * L) : opts;
       gridMap[r][c] = grp;
       if (hasContent[r][c]) counts[grp]++;
     }
@@ -153,17 +152,17 @@ function processImage(uploadedImage) {
   for (let i = 0; i < L; i++) {
     const holder = document.createElement('div');
     holder.className = 'canvas-container';
-    holder.innerHTML = '<h3>Layer ' + (i+1) + '</h3>';
+    // הסרת הכותרות הישנות מעל התמונות הקטנות
+    holder.innerHTML = ''; 
     const cvs = document.createElement('canvas');
     cvs.width = w; cvs.height = h;
     const ctx = cvs.getContext('2d');
     ctx.fillStyle = 'white'; ctx.fillRect(0, 0, w, h);
     const img = document.createElement('img');
     img.className = 'out-img';
-    const hint = document.createElement('div');
-    hint.className = 'hint'; hint.innerText = '☝️ Long press to Save';
+    // הוספת התמונה ישירות ללא טקסט הדרכה תחתיה
     holder.appendChild(cvs); holder.appendChild(img);
-    holder.appendChild(hint); grid.appendChild(holder);
+    grid.appendChild(holder);
     canvases.push(cvs); ctxs.push(ctx); outImgs.push(img);
   }
 
@@ -205,7 +204,6 @@ function processImage(uploadedImage) {
   mCtx.putImageData(masterImgData, 0, 0);
   mImg.src = mCvs.toDataURL();
 
-  // יצירת דף ההדפסה
   const pSheetCanvas = document.getElementById('canvasPrintSheet');
   const pSheetImg = document.getElementById('imgPrintSheet');
   const pSheetCtx = pSheetCanvas.getContext('2d');
@@ -222,9 +220,12 @@ function processImage(uploadedImage) {
     const xPos = spacing;
     pSheetCtx.drawImage(singleCanvas, xPos, yPos);
     
-    // ציור מסגרת גזירה בשיטה מוגנת ללא שגיאות סינטקס
+    // ציור קו גזירה מקווקו אפור אמיתי מסביב לכל תמונה בתוך דף ההדפסה
     pSheetCtx.strokeStyle = '#95a5a6';
     pSheetCtx.lineWidth = 3;
+    
+    // יצירת קו מקווקו: 15 פיקסלים קו, 10 פיקסלים רווח
+    pSheetCtx.setLineDash([15, 10]); 
     pSheetCtx.strokeRect(xPos - 4, yPos - 4, w + 8, h + 8);
   });
   
