@@ -1,11 +1,21 @@
 let globalImg = null;
 let isFirstLoad = true;
 
+function setRandomCode() {
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  document.getElementById('codeText').value = rand;
+  // עדכון אוטומטי של מספר העמודות ל-4 (אורך הטקסט)
+  document.getElementById('colsCount').value = 4;
+  globalImg = null;
+  document.getElementById('imageLoader').value = '';
+  runTrigger();
+}
+
 document.getElementById('imageLoader')
   .addEventListener('change', function(e) {
-    if (!e.target.files[0]) return;
+    if (!e.target.files) return;
     document.getElementById('codeText').value = '';
-    globalImg = null; // איפוס תמונת טקסט קודמת
+    globalImg = null;
     
     const rdr = new FileReader();
     rdr.onload = function(event) {
@@ -16,7 +26,7 @@ document.getElementById('imageLoader')
       }
       img.src = event.target.result;
     }
-    rdr.readAsDataURL(e.target.files[0]);
+    rdr.readAsDataURL(e.target.files);
   });
 
 const inputs = ['rowsCount', 'colsCount', 'layersCount'];
@@ -30,6 +40,8 @@ document.getElementById('codeText')
     if (this.value.length > 0) {
       globalImg = null;
       document.getElementById('imageLoader').value = '';
+      // עדכון אוטומטי של מספר העמודות לפי מספר התווים הנוכחי
+      document.getElementById('colsCount').value = this.value.length;
       runTrigger();
     }
   });
@@ -46,24 +58,29 @@ function runTrigger() {
 function remixCurrent() { runTrigger(); }
 
 function generateTextAndProcess(text) {
+  const spacedText = text.split('').join(' ');
+  
+  const measureCanvas = document.createElement('canvas');
+  const measureCtx = measureCanvas.getContext('2d');
+  measureCtx.font = '200px EscapeFont, sans-serif';
+  const textWidth = measureCtx.measureText(spacedText).width;
+  
+  const dynamicWidth = Math.max(650, Math.ceil(textWidth + 80));
+  const targetHeight = 220;
+  
   const canvas = document.createElement('canvas');
-  // מלבן מהודק וצר יותר למניעת שוליים לבנים
-  canvas.width = 650; canvas.height = 220;
+  canvas.width = dynamicWidth; canvas.height = targetHeight;
   const ctx = canvas.getContext('2d');
   
   ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, 650, 220);
+  ctx.fillRect(0, 0, dynamicWidth, targetHeight);
   
-  const spacedText = text.split('').join(' ');
   ctx.fillStyle = 'black';
-  
-  // פונט ענק ומותאם למימדי הרצועה החדשה
   ctx.font = '200px EscapeFont, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   
-  // תיקון גובה ל-125 בשביל מרכוס מושלם של הפונט הקישוטי
-  ctx.fillText(spacedText, 325, 125);
+  ctx.fillText(spacedText, dynamicWidth / 2, 125);
   
   const img = new Image();
   img.onload = function() { processImage(img); };
@@ -116,7 +133,7 @@ function processImage(uploadedImage) {
       if (c > 0) opts = opts.filter(i => i !== gridMap[r][c-1]);
       if (opts.length > 1 && Math.random() < 0.4) opts = shuffle(opts);
       
-      const grp = opts.length === 0 ? Math.floor(Math.random() * L) : opts[0];
+      const grp = opts.length === 0 ? Math.floor(Math.random() * L) : opts;
       gridMap[r][c] = grp;
       if (hasContent[r][c]) counts[grp]++;
     }
@@ -192,7 +209,6 @@ function processImage(uploadedImage) {
   mImg.src = mCvs.toDataURL();
 }
 
-// הרצה ראשונית מבוקרת פעם אחת בלבד
 document.fonts.ready.then(function() {
   if (isFirstLoad) {
     isFirstLoad = false;
