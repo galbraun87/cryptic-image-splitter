@@ -211,7 +211,8 @@ function processImage(uploadedImage) {
   mImg.src = mCvs.toDataURL();
 }
 
-document.fonts.ready.then(function() {
+// מנגנון טעינה אקטיבי ומאובטח המונע ריצה עם פונט שגוי
+document.fonts.load('180px EscapeFont').then(function() {
   if (isFirstLoad) {
     isFirstLoad = false;
     runTrigger();
