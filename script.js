@@ -44,21 +44,24 @@ function remixCurrent() { runTrigger(); }
 
 function generateTextAndProcess(text) {
   const canvas = document.createElement('canvas');
-  canvas.width = 800; canvas.height = 400;
+  // הגדלת רוחב הקנבס הנסתר ל-1200
+  canvas.width = 1200; canvas.height = 400;
   const ctx = canvas.getContext('2d');
   
   ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, 800, 400);
+  ctx.fillRect(0, 0, 1200, 400);
   
-  // הוספת רווח כפול בין הספרות
-  const spacedText = text.split('').join('  ');
+  // חזרה לרווח בודד ומאוזן
+  const spacedText = text.split('').join(' ');
   ctx.fillStyle = 'black';
   
-  // הגדלת הפונט ל-260 פיקסלים
+  // פונט ענק של 260 פיקסלים
   ctx.font = '260px EscapeFont, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(spacedText, 400, 200);
+  
+  // ציור במרכז הקנבס הרחב (600 הוא חצי מ-1200)
+  ctx.fillText(spacedText, 600, 200);
   
   const img = new Image();
   img.onload = function() { processImage(img); };
