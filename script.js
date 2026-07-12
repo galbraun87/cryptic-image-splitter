@@ -12,7 +12,7 @@ function setRandomCode() {
 
 document.getElementById('imageLoader')
   .addEventListener('change', function(e) {
-    if (!e.target.files[0]) return;
+    if (!e.target.files) return;
     document.getElementById('codeText').value = '';
     globalImg = null;
     
@@ -25,7 +25,7 @@ document.getElementById('imageLoader')
       }
       img.src = event.target.result;
     }
-    rdr.readAsDataURL(e.target.files[0]);
+    rdr.readAsDataURL(e.target.files);
   });
 
 const inputs = ['rowsCount', 'colsCount', 'layersCount'];
@@ -60,11 +60,13 @@ function generateTextAndProcess(text) {
   
   const measureCanvas = document.createElement('canvas');
   const measureCtx = measureCanvas.getContext('2d');
-  measureCtx.font = '200px EscapeFont, sans-serif';
+  // הכפלת הפונט ל-400 פיקסלים בשביל רזולוציה מקסימלית
+  measureCtx.font = '400px EscapeFont, sans-serif';
   const textWidth = measureCtx.measureText(spacedText).width;
   
-  const dynamicWidth = Math.max(650, Math.ceil(textWidth + 80));
-  const targetHeight = 220;
+  // התאמת מימדי המינימום והרוחב הדינמי פי 2
+  const dynamicWidth = Math.max(1300, Math.ceil(textWidth + 160));
+  const targetHeight = 440; // גובה כפול
   
   const canvas = document.createElement('canvas');
   canvas.width = dynamicWidth; canvas.height = targetHeight;
@@ -74,11 +76,12 @@ function generateTextAndProcess(text) {
   ctx.fillRect(0, 0, dynamicWidth, targetHeight);
   
   ctx.fillStyle = 'black';
-  ctx.font = '200px EscapeFont, sans-serif';
+  ctx.font = '400px EscapeFont, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   
-  ctx.fillText(spacedText, dynamicWidth / 2, 125);
+  // מירכוס מושלם ברזולוציה החדשה
+  ctx.fillText(spacedText, dynamicWidth / 2, 250);
   
   const img = new Image();
   img.onload = function() { processImage(img); };
@@ -131,7 +134,7 @@ function processImage(uploadedImage) {
       if (c > 0) opts = opts.filter(i => i !== gridMap[r][c-1]);
       if (opts.length > 1 && Math.random() < 0.4) opts = shuffle(opts);
       
-      const grp = opts.length === 0 ? Math.floor(Math.random() * L) : opts[0];
+      const grp = opts.length === 0 ? Math.floor(Math.random() * L) : opts;
       gridMap[r][c] = grp;
       if (hasContent[r][c]) counts[grp]++;
     }
@@ -174,8 +177,6 @@ function processImage(uploadedImage) {
   const masterImgData = mCtx.getImageData(0, 0, w, h);
   
   const colors = ['#eb4d4b', '#4834d4', '#22a6b3', '#2ecc71', '#f1c40f', '#e67e22', '#9b59b6', '#e84393'];
-  
-  // תיקון הבאג: המרת ה-HEX ל-RGB בצורה בטוחה ותואמת דפדפנים ללא שגיאות
   const rgb = colors.slice(0, L).map(function(hex) {
     const rVal = parseInt(hex.substring(1, 3), 16);
     const gVal = parseInt(hex.substring(3, 5), 16);
@@ -185,10 +186,11 @@ function processImage(uploadedImage) {
 
   for (let y = 0; y < h; y++) {
     const gRow = Math.min(N - 1, Math.floor(y / cellH));
-    const isBorderY = (y < 4 || y > h - 5);
+    // עובי מסגרת הוכפל ל-8 פיקסלים בשביל הרזולוציה החדשה
+    const isBorderY = (y < 8 || y > h - 9);
     for (let x = 0; x < w; x++) {
       const gCol = Math.min(M - 1, Math.floor(x / cellW));
-      const isBorderX = (x < 4 || x > w - 5);
+      const isBorderX = (x < 8 || x > w - 9);
       const srcIdx = (y * w + x) * 4;
       const isFrame = (isBorderX || isBorderY);
 
@@ -209,9 +211,39 @@ function processImage(uploadedImage) {
   });
   mCtx.putImageData(masterImgData, 0, 0);
   mImg.src = mCvs.toDataURL();
+
+  // --- מנגנון בנייה אוטומטי של דף ההדפסה המאוחד ---
+  const pSheetCanvas = document.getElementById('canvasPrintSheet');
+  const pSheetImg = document.getElementById('imgPrintSheet');
+  const pSheetCtx = pSheetCanvas.getContext('2d');
+  
+  const spacing = 40; // מרווח פנימי קבוע בין השכבות בדף
+  pSheetCanvas.width = w + (spacing * 2);
+  pSheetCanvas.height = (h * L) + (spacing * (L + 1));
+  
+  pSheetCtx.fillStyle = 'white';
+  pSheetCtx.fillRect(0, 0, pSheetCanvas.width, pSheetCanvas.height);
+  
+  canvases.forEach((singleCanvas, idx) => {
+    const yPos = (idx * h) + (spacing * (idx + 1));
+    const xPos = spacing;
+    
+    // העתקת השכבה לדף ההדפסה
+    pSheetCtx.drawImage(singleCanvas, xPos, yPos);
+    
+    // ציור קו גזירה מקווקו אפור מסביב לשכבה
+    pSheetCtx.strokeStyle = '#95a5a6';
+    pSheetCtx.lineWidth = 3;
+    pSheetCtx.setLineDash([15, 10]); // הגדרת קו מקווקו ארוך וברור
+    pSheetCtx.strokeRect(xPos - 4, yPos - 4, w + 8, h + 8);
+  });
+  
+  // הזרקת הדף המאוחד לתמונת תצוגה להורדה בלחיצה ארוכה
+  pSheetImg.src = pSheetCanvas.toDataURL();
+  document.getElementById('masterHolder').style.display = 'block';
+  canvases.forEach(c => c.parentElement.style.display = 'block');
 }
 
-// מנגנון טעינה אקטיבי ומאובטח המונע ריצה עם פונט שגוי
 document.fonts.load('180px EscapeFont').then(function() {
   if (isFirstLoad) {
     isFirstLoad = false;
