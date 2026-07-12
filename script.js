@@ -15,7 +15,6 @@ document.getElementById('imageLoader')
     if (!e.target.files) return;
     document.getElementById('codeText').value = '';
     globalImg = null;
-    
     const rdr = new FileReader();
     rdr.onload = function(event) {
       const img = new Image();
@@ -57,30 +56,22 @@ function remixCurrent() { runTrigger(); }
 
 function generateTextAndProcess(text) {
   const spacedText = text.split('').join(' ');
-  
   const measureCanvas = document.createElement('canvas');
   const measureCtx = measureCanvas.getContext('2d');
-  // הכפלת הפונט ל-400 פיקסלים בשביל רזולוציה מקסימלית
   measureCtx.font = '400px EscapeFont, sans-serif';
   const textWidth = measureCtx.measureText(spacedText).width;
   
-  // התאמת מימדי המינימום והרוחב הדינמי פי 2
   const dynamicWidth = Math.max(1300, Math.ceil(textWidth + 160));
-  const targetHeight = 440; // גובה כפול
+  const targetHeight = 440;
   
   const canvas = document.createElement('canvas');
   canvas.width = dynamicWidth; canvas.height = targetHeight;
   const ctx = canvas.getContext('2d');
-  
-  ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, dynamicWidth, targetHeight);
+  ctx.fillStyle = 'white'; ctx.fillRect(0, 0, dynamicWidth, targetHeight);
   
   ctx.fillStyle = 'black';
   ctx.font = '400px EscapeFont, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  
-  // מירכוס מושלם ברזולוציה החדשה
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(spacedText, dynamicWidth / 2, 250);
   
   const img = new Image();
@@ -112,9 +103,7 @@ function processImage(uploadedImage) {
   srcCtx.drawImage(uploadedImage, 0, 0, w, h);
   const pixels = srcCtx.getImageData(0, 0, w, h).data;
 
-  const hasContent = Array.from({length: N}, () => 
-    Array.from({length: M}, () => false)
-  );
+  const hasContent = Array.from({length: N}, () => Array.from({length: M}, () => false));
   for (let y = 0; y < h; y++) {
     const r = Math.min(N - 1, Math.floor(y / cellH));
     for (let x = 0; x < w; x++) {
@@ -133,7 +122,6 @@ function processImage(uploadedImage) {
       if (r > 0) opts = opts.filter(i => i !== gridMap[r-1][c]);
       if (c > 0) opts = opts.filter(i => i !== gridMap[r][c-1]);
       if (opts.length > 1 && Math.random() < 0.4) opts = shuffle(opts);
-      
       const grp = opts.length === 0 ? Math.floor(Math.random() * L) : opts;
       gridMap[r][c] = grp;
       if (hasContent[r][c]) counts[grp]++;
@@ -186,7 +174,6 @@ function processImage(uploadedImage) {
 
   for (let y = 0; y < h; y++) {
     const gRow = Math.min(N - 1, Math.floor(y / cellH));
-    // עובי מסגרת הוכפל ל-8 פיקסלים בשביל הרזולוציה החדשה
     const isBorderY = (y < 8 || y > h - 9);
     for (let x = 0; x < w; x++) {
       const gCol = Math.min(M - 1, Math.floor(x / cellW));
@@ -212,12 +199,12 @@ function processImage(uploadedImage) {
   mCtx.putImageData(masterImgData, 0, 0);
   mImg.src = mCvs.toDataURL();
 
-  // --- מנגנון בנייה אוטומטי של דף ההדפסה המאוחד ---
+  // בניית דף ההדפסה המאוחד ברזולוציה גבוהה
   const pSheetCanvas = document.getElementById('canvasPrintSheet');
   const pSheetImg = document.getElementById('imgPrintSheet');
   const pSheetCtx = pSheetCanvas.getContext('2d');
   
-  const spacing = 40; // מרווח פנימי קבוע בין השכבות בדף
+  const spacing = 40; 
   pSheetCanvas.width = w + (spacing * 2);
   pSheetCanvas.height = (h * L) + (spacing * (L + 1));
   
@@ -227,18 +214,15 @@ function processImage(uploadedImage) {
   canvases.forEach((singleCanvas, idx) => {
     const yPos = (idx * h) + (spacing * (idx + 1));
     const xPos = spacing;
-    
-    // העתקת השכבה לדף ההדפסה
     pSheetCtx.drawImage(singleCanvas, xPos, yPos);
     
-    // ציור קו גזירה מקווקו אפור מסביב לשכבה
     pSheetCtx.strokeStyle = '#95a5a6';
     pSheetCtx.lineWidth = 3;
-    pSheetCtx.setLineDash([15, 10]); // הגדרת קו מקווקו ארוך וברור
+    // תיקון השגיאה: קו מקווקו תקין באורך 10 פיקסלים
+    pSheetCtx.setLineDash([10, 10]); 
     pSheetCtx.strokeRect(xPos - 4, yPos - 4, w + 8, h + 8);
   });
   
-  // הזרקת הדף המאוחד לתמונת תצוגה להורדה בלחיצה ארוכה
   pSheetImg.src = pSheetCanvas.toDataURL();
   document.getElementById('masterHolder').style.display = 'block';
   canvases.forEach(c => c.parentElement.style.display = 'block');
