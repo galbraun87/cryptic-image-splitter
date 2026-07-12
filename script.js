@@ -44,29 +44,34 @@ function remixCurrent() { runTrigger(); }
 
 function generateTextAndProcess(text) {
   const canvas = document.createElement('canvas');
-  // הגדלת רוחב הקנבס הנסתר ל-1200
-  canvas.width = 1200; canvas.height = 400;
+  // צמצום הגובה ל-260 כדי למחוק שוליים לבנים
+  canvas.width = 1100; canvas.height = 260;
   const ctx = canvas.getContext('2d');
   
   ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, 1200, 400);
+  ctx.fillRect(0, 0, 1100, 260);
   
-  // חזרה לרווח בודד ומאוזן
   const spacedText = text.split('').join(' ');
   ctx.fillStyle = 'black';
   
-  // פונט ענק של 260 פיקסלים
+  // פונט ענק ללא שוליים מיותרים
   ctx.font = '260px EscapeFont, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   
-  // ציור במרכז הקנבס הרחב (600 הוא חצי מ-1200)
-  ctx.fillText(spacedText, 600, 200);
+  // מיקום הציור במרכז המדויק (130 הוא חצי מ-260)
+  ctx.fillText(spacedText, 550, 130);
   
   const img = new Image();
   img.onload = function() { processImage(img); };
   img.src = canvas.toDataURL();
 }
+
+// מנגנון טעינה קשיח ומאובטח לפונטים מקומיים
+WebFont.load({
+  custom: { families: ['EscapeFont'] },
+  active: function() { runTrigger(); }
+});
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
