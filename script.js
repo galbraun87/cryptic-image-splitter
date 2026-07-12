@@ -44,28 +44,30 @@ function remixCurrent() { runTrigger(); }
 
 function generateTextAndProcess(text) {
   const canvas = document.createElement('canvas');
-  // צמצום הגובה ל-260 כדי למחוק שוליים לבנים
-  canvas.width = 1100; canvas.height = 260;
+  // שינוי המימדים למלבן צפוף והדוק
+  canvas.width = 450; canvas.height = 300;
   const ctx = canvas.getContext('2d');
   
   ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, 1100, 260);
+  ctx.fillRect(0, 0, 450, 300);
   
+  // ריווח קצר ומאוזן כדי שלא יברח מהצדדים
   const spacedText = text.split('').join(' ');
   ctx.fillStyle = 'black';
   
-  // פונט ענק ללא שוליים מיותרים
+  // פונט ענק שחונק את גבולות הקנבס
   ctx.font = '260px EscapeFont, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   
-  // מיקום הציור במרכז המדויק (130 הוא חצי מ-260)
-  ctx.fillText(spacedText, 550, 130);
+  // מיקום הציור במרכז החדש (225 הוא חצי מ-450, 150 חצי מ-300)
+  ctx.fillText(spacedText, 225, 150);
   
   const img = new Image();
   img.onload = function() { processImage(img); };
   img.src = canvas.toDataURL();
 }
+
 
 // מנגנון טעינה קשיח ומאובטח לפונטים מקומיים
 WebFont.load({
