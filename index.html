@@ -117,9 +117,10 @@
   <div class="controls">
     <div class="control-group">
       <label>1. Code Text (Max 20 chars):</label>
-      <div style="display: flex; gap: 8px;">
+      <!-- שינוי לטובת סידור גמיש של הכפתור בנייד -->
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
         <input type="text" id="codeText" 
-               value="9582" maxlength="20">
+               value="9582" maxlength="20" style="flex: 1; min-width: 120px;">
         <button type="button" 
                 onclick="setRandomCode()" 
                 style="width: auto; 
@@ -127,7 +128,8 @@
                        background: #6c757d; 
                        color: white; 
                        border: none; 
-                       cursor: pointer;">
+                       cursor: pointer;
+                       flex: 1; min-width: 140px;">
           🎲 Random 4-Digit
         </button>
       </div>
