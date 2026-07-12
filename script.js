@@ -4,7 +4,6 @@ let isFirstLoad = true;
 function setRandomCode() {
   const rand = Math.floor(1000 + Math.random() * 9000);
   document.getElementById('codeText').value = rand;
-  // עדכון אוטומטי של מספר העמודות ל-4 (אורך הטקסט)
   document.getElementById('colsCount').value = 4;
   globalImg = null;
   document.getElementById('imageLoader').value = '';
@@ -13,7 +12,7 @@ function setRandomCode() {
 
 document.getElementById('imageLoader')
   .addEventListener('change', function(e) {
-    if (!e.target.files) return;
+    if (!e.target.files[0]) return;
     document.getElementById('codeText').value = '';
     globalImg = null;
     
@@ -26,7 +25,7 @@ document.getElementById('imageLoader')
       }
       img.src = event.target.result;
     }
-    rdr.readAsDataURL(e.target.files);
+    rdr.readAsDataURL(e.target.files[0]);
   });
 
 const inputs = ['rowsCount', 'colsCount', 'layersCount'];
@@ -40,7 +39,6 @@ document.getElementById('codeText')
     if (this.value.length > 0) {
       globalImg = null;
       document.getElementById('imageLoader').value = '';
-      // עדכון אוטומטי של מספר העמודות לפי מספר התווים הנוכחי
       document.getElementById('colsCount').value = this.value.length;
       runTrigger();
     }
@@ -133,7 +131,7 @@ function processImage(uploadedImage) {
       if (c > 0) opts = opts.filter(i => i !== gridMap[r][c-1]);
       if (opts.length > 1 && Math.random() < 0.4) opts = shuffle(opts);
       
-      const grp = opts.length === 0 ? Math.floor(Math.random() * L) : opts;
+      const grp = opts.length === 0 ? Math.floor(Math.random() * L) : opts[0];
       gridMap[r][c] = grp;
       if (hasContent[r][c]) counts[grp]++;
     }
@@ -176,9 +174,13 @@ function processImage(uploadedImage) {
   const masterImgData = mCtx.getImageData(0, 0, w, h);
   
   const colors = ['#eb4d4b', '#4834d4', '#22a6b3', '#2ecc71', '#f1c40f', '#e67e22', '#9b59b6', '#e84393'];
-  const rgb = colors.slice(0, L).map(hex => {
-    const c = parseInt(hex.slice(1), 16);
-    return { r: (c >> 16) & 255, g: (c >> 8) & 255, b: c & 255 };
+  
+  // תיקון הבאג: המרת ה-HEX ל-RGB בצורה בטוחה ותואמת דפדפנים ללא שגיאות
+  const rgb = colors.slice(0, L).map(function(hex) {
+    const rVal = parseInt(hex.substring(1, 3), 16);
+    const gVal = parseInt(hex.substring(3, 5), 16);
+    const bVal = parseInt(hex.substring(5, 7), 16);
+    return { r: rVal, g: gVal, b: bVal };
   });
 
   for (let y = 0; y < h; y++) {
