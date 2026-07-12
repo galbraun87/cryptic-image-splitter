@@ -112,16 +112,25 @@
 <body>
 
 <div class="container">
-  <!-- הוסף את זה מיד בתחילת ה-container -->
-<div style="font-family: 'EscapeFont'; opacity: 0; position: absolute; height: 0;">preload</div>
-  
   <h1>Image Splitter V2</h1>
   
   <div class="controls">
     <div class="control-group">
-      <label>1. Code Text:</label>
-      <input type="text" id="codeText" 
-             value="9582" maxlength="10">
+      <label>1. Code Text (Max 20 chars):</label>
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="codeText" 
+               value="9582" maxlength="20">
+        <button type="button" 
+                onclick="setRandomCode()" 
+                style="width: auto; 
+                       white-space: nowrap; 
+                       background: #6c757d; 
+                       color: white; 
+                       border: none; 
+                       cursor: pointer;">
+          🎲 Random 4-Digit
+        </button>
+      </div>
     </div>
     <div class="control-group">
       <label>OR Choose Source Image:</label>
@@ -159,7 +168,6 @@
        class="output-grid"></div>
 </div>
 
-<!-- קישור לקובץ הסקריפט החיצוני -->
 <script src="script.js"></script>
 </body>
 </html>
