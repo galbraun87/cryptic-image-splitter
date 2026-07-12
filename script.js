@@ -42,25 +42,28 @@ function runTrigger() {
 
 function remixCurrent() { runTrigger(); }
 
-  function generateTextAndProcess(text) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 800; canvas.height = 400;
-    const ctx = canvas.getContext('2d');
-    
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, 800, 400);
-    
-    const spacedText = text.split('').join(' ');
-    ctx.fillStyle = 'black';
-    ctx.font = '180px EscapeFont, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(spacedText, 400, 200);
-    
-    const img = new Image();
-    img.onload = function() { processImage(img); };
-    img.src = canvas.toDataURL();
-  }
+function generateTextAndProcess(text) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 800; canvas.height = 400;
+  const ctx = canvas.getContext('2d');
+  
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, 800, 400);
+  
+  // הוספת רווח כפול בין הספרות
+  const spacedText = text.split('').join('  ');
+  ctx.fillStyle = 'black';
+  
+  // הגדלת הפונט ל-260 פיקסלים
+  ctx.font = '260px EscapeFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(spacedText, 400, 200);
+  
+  const img = new Image();
+  img.onload = function() { processImage(img); };
+  img.src = canvas.toDataURL();
+}
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
