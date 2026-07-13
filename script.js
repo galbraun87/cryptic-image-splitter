@@ -336,6 +336,7 @@ function processImage(uploadedImage) {
   mCtx.putImageData(masterImgData, 0, 0);
   mImg.src = mCvs.toDataURL();
 
+  // בניית דף ההדפסה עם שוליים מורחבים לקווי הגזירה
   const pSheetCanvas = document
     .getElementById('canvasPrintSheet');
   const pSheetImg = document
@@ -343,7 +344,8 @@ function processImage(uploadedImage) {
   const pSheetCtx = pSheetCanvas
     .getContext('2d');
   
-  const spacing = 40; 
+  // הגדלת המרווח הכללי בדף ההדפסה כדי לתמוך בשוליים החדשים
+  const spacing = 80; 
   pSheetCanvas.width = w + (spacing * 2);
   pSheetCanvas.height = (h * L) + 
     (spacing * (L + 1));
@@ -366,15 +368,17 @@ function processImage(uploadedImage) {
     pSheetCtx.strokeStyle = '#95a5a6';
     pSheetCtx.lineWidth = 3;
     
-    // הגדרת קו מקווקו בטוח ללא תווים מיוחדים
     pSheetCtx.setLineDash(
       Array.from({length:2}, (_,i) => i===0?15:10)
     ); 
+    
+    // הרחקת קו הגזירה המקווקו ב-30 פיקסלים מכל צד של המסגרת
     pSheetCtx.strokeRect(
-      xPos - 4, yPos - 4, w + 8, h + 8
+      xPos - 30, yPos - 30, w + 60, h + 60
     );
   });
-  
+
+
   pSheetImg.src = pSheetCanvas.toDataURL();
   document.getElementById('masterHolder')
     .style.display = 'block';
